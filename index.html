@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+<!--meta for the browser to allow for mobile first design-->
+<meta charset="utf-8"/>
+<meta content="initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport"/>
+<title>
+   City of Memphis Park Explorer
+  </title>
+<style>
+   html,
+    body,
+    #viewDiv {
+     padding: 0;
+     margin: 0;
+     height: 100%;
+     width: 100%;
+    }
+
+    .addRecordBtn {
+  position: absolute;
+  z-index: 10;
+  bottom: 10px;
+  right: 10px;
+  background-color: #0079c1;
+  color: white;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.addRecordBtn:hover {
+  background-color: #005a87;
+}
+  
+.customBtn {
+  display: inline-block;
+  margin: 10px;
+  background-color: #0079c1;
+  color: white;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.customBtn:hover {
+  background-color: #005a87;
+}
+</style>
+<!--importing thr css and libraries for esri.js-->
+<link href="https://js.arcgis.com/4.26/esri/themes/light/main.css" rel="stylesheet"/>
+<script src="https://js.arcgis.com/4.26/">
+</script>
+<!--loading the modules-->
+<script>
+   require(["esri/config" ,"esri/Map", "esri/views/MapView", "esri/widgets/Locate", "esri/widgets/Search", "esri/layers/FeatureLayer"], (esriConfig, Map, MapView, Locate, Search, FeatureLayer) => {
+            
+            //adding in API Key
+            esriConfig.apiKey = "AAPK86a0d5325df043d7878146eca4d4d247grl7C2jYdexMMLYxB9UvVw4tyLRSPmD38pG-xRa0N7jiyB56hho9VAphdXvtiBBH";
+
+            const map = new Map({
+                basemap: "satellite"
+            });
+
+             //This block of code centers on Memphis and sets the zoom
+             const view = new MapView({
+                container: "viewDiv",  
+                    map: map, 
+                    center: [ -89.9785, 35.1495],  // Lon and lat of Memphis
+                    zoom: 15 
+                });
+            
+             const searchWidget = new Search({
+             view: view
+             });
+
+            //search widget
+            view.ui.add(searchWidget, {
+            position: "top-right",
+            });
+            
+            const locateBtn = new Locate({
+                view: view
+            });
+
+            // Add the locate widget to the top right corner of the view
+            view.ui.add(locateBtn, {
+                position: "top-right"
+            });
+
+    // Define a pop-up for usaeduLayer
+     const popupPark = {
+     "title": "Parks",
+     "content": "<b>Name:</b> {park_nam_1}<br><b>Location:</b> {location}<br>"
+}
+
+    //adding the point to the graphics layer
+    const parkLayer = new FeatureLayer({
+      url: "https://services.arcgis.com/HRPe58bUyBqyyiCt/arcgis/rest/services/City_of_Memphis_Parks/FeatureServer/0",
+    
+    //adding the popup here
+    outFields: ["park_nam_1", "location"],
+    popupTemplate: popupPark
+    });
+
+     //adding the constructor for the feature layer
+     map.add(parkLayer);
+
+        });
+  </script>
+</head>
+<body>
+<h1 style="text-align: center;">
+  City of Memphis Park Explorer
+  </h1>
+
+<div id="viewDiv" style="max-width: 700px; height: 400px; margin: 20px auto;">
+</div><div style="max-width: 700px; margin: 20px auto; text-align: center;"><a class="customBtn" href="https://survey123.arcgis.com/share/2cc4ae47cb9c4fc19ea4181619b4dd9b">Review a Park</a><a class="customBtn" href="https://survey123.arcgis.com/share/1f16f5e915b546318d7c5a53231edeea">Report a Concern</a></div>
+</body>
+</html>
