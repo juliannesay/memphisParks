@@ -18,29 +18,10 @@
      width: 100%;
     }
 
-    .addRecordBtn {
-  position: absolute;
-  z-index: 10;
-  bottom: 10px;
-  right: 10px;
-  background-color: #0079c1;
-  color: white;
-  padding: 8px 16px;
-  border: none;
-  border-radius: 4px;
-  font-size: 14px;
-  cursor: pointer;
-  text-decoration: none;
-}
-
-.addRecordBtn:hover {
-  background-color: #005a87;
-}
-  
-.customBtn {
+.surveyBtn {
   display: inline-block;
   margin: 10px;
-  background-color: #0079c1;
+  background-color: #03690d;
   color: white;
   padding: 8px 16px;
   border: none;
@@ -50,23 +31,36 @@
   text-decoration: none;
 }
 
-.customBtn:hover {
-  background-color: #005a87;
+.surveyBtn:hover {
+  background-color: #1f4e2a;
 }
+
+body { background-color: #abad98; 
+    color: #423f34;
+
+    font-family: "Helvetica", sans-serif;
+
+    background-image: url("https://raw.githubusercontent.com/juliannesay/memphisParks/263fd84766a1011a813011b068c514639e7211af/grey-washed-wall.png");
+    background-repeat: repeat;
+}
+
 </style>
 <!--importing thr css and libraries for esri.js-->
-<link href="https://js.arcgis.com/4.26/esri/themes/light/main.css" rel="stylesheet"/>
-<script src="https://js.arcgis.com/4.26/">
+<link href="https://js.arcgis.com/4.27/esri/themes/light/main.css" rel="stylesheet"/>
+<script src="https://js.arcgis.com/4.27/">
 </script>
 <!--loading the modules-->
+
+</script>
 <script>
-   require(["esri/config" ,"esri/Map", "esri/views/MapView", "esri/widgets/Locate", "esri/widgets/Search", "esri/layers/FeatureLayer"], (esriConfig, Map, MapView, Locate, Search, FeatureLayer) => {
+   require(["esri/config" ,"esri/Map", "esri/views/MapView", "esri/widgets/Locate", "esri/widgets/Search", "esri/layers/FeatureLayer", "esri/widgets/Legend", "esri/widgets/FeatureTable"], (esriConfig, Map, MapView, Locate, Search, FeatureLayer, Legend, FeatureTable) => {
             
             //adding in API Key
-            esriConfig.apiKey = "AAPK86a0d5325df043d7878146eca4d4d247grl7C2jYdexMMLYxB9UvVw4tyLRSPmD38pG-xRa0N7jiyB56hho9VAphdXvtiBBH";
+            esriConfig.apiKey = "AAPK50bd33a7f78c4bd98439817346c45150YxOaoF_yiyzXk7-A7yCiGXxGKE8ywmKK9LJdIaiT30z5N5ry4n9ghqL74FTTcDK7";
 
+            //creating the map
             const map = new Map({
-                basemap: "satellite"
+                basemap: "arcgis-midcentury"
             });
 
              //This block of code centers on Memphis and sets the zoom
@@ -74,18 +68,20 @@
                 container: "viewDiv",  
                     map: map, 
                     center: [ -89.9785, 35.1495],  // Lon and lat of Memphis
-                    zoom: 15 
+                    zoom: 10.5 
                 });
             
+            //create the const for the search widget
              const searchWidget = new Search({
              view: view
              });
 
-            //search widget
+            //add and position the search widget
             view.ui.add(searchWidget, {
             position: "top-right",
             });
             
+            //create the const for the locate widget
             const locateBtn = new Locate({
                 view: view
             });
@@ -95,33 +91,104 @@
                 position: "top-right"
             });
 
-    // Define a pop-up for usaeduLayer
-     const popupPark = {
-     "title": "Parks",
-     "content": "<b>Name:</b> {park_nam_1}<br><b>Location:</b> {location}<br>"
+            // Add legend widget
+            const legend = new Legend({
+            view: view,
+            style: "card"
+            });
+
+view.ui.add(legend, "bottom-left");
+
+// Define a pop-up for the report layer
+    const popupReport = {
+     "title": "Reports",
+     "content": "<b>Park:</b>{select_a_park}<br><b>Date:</b>{EditDate}<br><b>Issue:</b>{describe_the_issue}<br>"
 }
 
-    //adding the point to the graphics layer
-    const parkLayer = new FeatureLayer({
+    //adding hosted data to the layer
+    window.reportLayer = new FeatureLayer({
+      url: "https://services.arcgis.com/HRPe58bUyBqyyiCt/arcgis/rest/services/survey123_1f16f5e915b546318d7c5a53231edeea_results/FeatureServer/0",
+    
+    //applying the popup to the layer
+    outFields: ["select_a_park", "EditDate", "describe_the_issue"],
+    popupTemplate: popupReport
+    });
+
+     //adding the constructor for the feature layer
+     map.add(reportLayer);
+
+    // Define a pop-up for Parks layer
+     const popupPark = {
+     "title": "Parks",
+     "content": "<b>Name:</b> {park_nam_1}<br><b>Location:</b> {location}<br><b>Zip Code:</b> {zipcode}<br><b>Ballfield:</b> {ballfield}<br><b>Basketball:</b> {basketball}<br><b>Benches:</b> {benches}<br><b>Concession:</b> {concession}<br><b>Fountains:</b> {fountains}<br><b>Grilles:</b> {grilles}<br><b>Pavilions:</b> {pavilions}<br><b>Picnic Tables:</b> {picnic_tab}<br><b>Playground:</b> {play_groun}<br><b>Pools:</b> {pools}<br><b>Restrooms:</b> {restrooms}<br><b>Tennis Courts:</b> {tennis_cou}<br><b>Trash Cans:</b> {trash}<br><b>Walking Trail:</b> {walking_tr}<br><b>Additional Info:</b> {additional}<br><b>Park Acres:</b> {acres_park}"
+}
+
+    //adding the point to the layer
+    window.parkLayer = new FeatureLayer({
       url: "https://services.arcgis.com/HRPe58bUyBqyyiCt/arcgis/rest/services/City_of_Memphis_Parks/FeatureServer/0",
     
     //adding the popup here
-    outFields: ["park_nam_1", "location"],
+    outFields: ["park_nam_1", "location", "zipcode", "ballfield", "basketball", "benches", "concession", "fountains", "grilles", "pavilions", "picnic_tab", "play_groun", "pools", "restrooms", "tennis_cou", "trash", "walking_tr", "additional", "acres_park"],
     popupTemplate: popupPark
     });
+
+    //create the feature table for the parks amenity data
+const featureTable = new FeatureTable({
+    view: view,
+    layer: parkLayer,
+    container: "tableDiv"
+  });
 
      //adding the constructor for the feature layer
      map.add(parkLayer);
 
         });
+
   </script>
+
 </head>
 <body>
 <h1 style="text-align: center;">
   City of Memphis Park Explorer
   </h1>
+  <!--create div to store the buttons above the filter-->
+<div style="max-width: 700px; margin: 20px auto; text-align: center;"><a class="surveyBtn" href="https://survey123.arcgis.com/share/2cc4ae47cb9c4fc19ea4181619b4dd9b">Review a Park</a><a class="surveyBtn" href="https://uw-mad.maps.arcgis.com/home/item.html?id=cd184821945e4aa28b3fe5ae691c699b#data">View Reviews</a><a class="surveyBtn" href="https://survey123.arcgis.com/share/1f16f5e915b546318d7c5a53231edeea">Report a Concern</a></div> 
+<!--create div for the filter-->
+<div id="filter-section" style="text-align:center; margin-bottom:20px;"><h3>Filter Parks by Amenities:</h3><input id="filter-ballfield" type="checkbox" value="ballfield"/><label for="filter-ballfield">Ballfield</label> <input id="filter-basketball" type="checkbox" value="basketball"/><label for="filter-basketball">Basketball</label> <input id="filter-benches" type="checkbox" value="benches"/><label for="filter-benches">Benches</label> <input id="filter-concession" type="checkbox" value="concession"/><label for="filter-concession">Concession</label> <input id="filter-fountains" type="checkbox" value="fountains"/><label for="filter-fountains">Fountains</label> <input id="filter-grilles" type="checkbox" value="grilles"/><label for="filter-grilles">Grilles</label> <input id="filter-pavilions" type="checkbox" value="pavilions"/><label for="filter-pavilions">Pavilions</label> <input id="filter-picnic_tab" type="checkbox" value="picnic_tab"/><label for="filter-picnic_tab">Picnic Tables</label> <input id="filter-play_groun" type="checkbox" value="play_groun"/><label for="filter-play_groun">Playground</label> <input id="filter-pools" type="checkbox" value="pools"/><label for="filter-pools">Pools</label> <input id="filter-restrooms" type="checkbox" value="restrooms"/><label for="filter-restrooms">Restrooms</label> <input id="filter-tennis_cou" type="checkbox" value="tennis_cou"/><label for="filter-tennis_cou">Tennis Courts</label> <input id="filter-trash" type="checkbox" value="trash"/><label for="filter-trash">Trash Cans</label> <br/><br/><button id="clear-filters">Clear Filters</button></div><div id="viewDiv" style="max-width: 900px; height: 600px; margin: 20px auto;">
+</div>
+<div id="tableDiv"></div>
+</script><script>
+document.addEventListener("DOMContentLoaded", function() {
+    // When a checkbox is changed, update the filter
+    const checkboxes = document.querySelectorAll("#filter-section input[type='checkbox']");
+    checkboxes.forEach(checkbox => {
+        checkbox.addEventListener("change", updateFilter);
+    });
 
-<div id="viewDiv" style="max-width: 700px; height: 400px; margin: 20px auto;">
-</div><div style="max-width: 700px; margin: 20px auto; text-align: center;"><a class="customBtn" href="https://survey123.arcgis.com/share/2cc4ae47cb9c4fc19ea4181619b4dd9b">Review a Park</a><a class="customBtn" href="https://survey123.arcgis.com/share/1f16f5e915b546318d7c5a53231edeea">Report a Concern</a></div>
-</body>
+    // Clear filters when the button is clicked
+    document.getElementById("clear-filters").addEventListener("click", function() {
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = false;
+        });
+        updateFilter();
+    });
+
+    //queries for the filter
+    function updateFilter() {
+        const selectedAmenities = [];
+        checkboxes.forEach(checkbox => {
+            if (checkbox.checked) {
+                // Check for amenities that are 'yes' or greater than 0 (for 'trash' field)
+                if (checkbox.value === "trash") {
+                    selectedAmenities.push(checkbox.value + " > 0");
+                } else {
+                    selectedAmenities.push(checkbox.value + " <> 'no'");
+                }
+            }
+        });
+        const filterExpression = selectedAmenities.join(" AND ");
+        parkLayer.definitionExpression = filterExpression;
+    }
+});
+</script></body>
 </html>
